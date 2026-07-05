@@ -123,6 +123,7 @@ export default function Instruments(): JSX.Element {
               <th>Name</th>
               <th>Type</th>
               <th>Exchange</th>
+              <th>Current price</th>
               <th>Custom?</th>
             </tr>
           </thead>
@@ -133,6 +134,7 @@ export default function Instruments(): JSX.Element {
                 <td>{i.name}</td>
                 <td>{i.type}</td>
                 <td>{i.exchange ?? '—'}</td>
+                <td>{i.manualPrice !== null ? `$${i.manualPrice.toFixed(2)}` : '—'}</td>
                 <td>{i.isCustom ? 'Yes' : ''}</td>
               </tr>
             ))}

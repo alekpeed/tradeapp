@@ -21,6 +21,7 @@ export interface Instrument {
   currency: string
   metadata: string | null // JSON blob, type-specific fields
   isCustom: boolean
+  manualPrice: number | null
   createdAt: string
 }
 

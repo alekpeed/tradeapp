@@ -13,6 +13,7 @@ function toInstrument(row: unknown): Instrument {
     currency: r.currency as string,
     metadata: (r.metadata as string) ?? null,
     isCustom: Boolean(r.is_custom),
+    manualPrice: (r.manual_price as number) ?? null,
     createdAt: r.created_at as string
   }
 }
@@ -47,4 +48,8 @@ export function registerInstrumentHandlers(db: Database.Database): void {
       return toInstrument(row)
     }
   )
+
+  ipcMain.handle('instruments:setManualPrice', (_event, instrumentId: number, price: number | null) => {
+    db.prepare(`UPDATE instruments SET manual_price = ? WHERE id = ?`).run(price, instrumentId)
+  })
 }

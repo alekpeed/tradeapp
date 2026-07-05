@@ -4,7 +4,9 @@ import type { TradeAppApi } from '@shared/ipc'
 const api: TradeAppApi = {
   instruments: {
     list: (type) => ipcRenderer.invoke('instruments:list', type),
-    createCustom: (input) => ipcRenderer.invoke('instruments:createCustom', input)
+    createCustom: (input) => ipcRenderer.invoke('instruments:createCustom', input),
+    setManualPrice: (instrumentId, price) =>
+      ipcRenderer.invoke('instruments:setManualPrice', instrumentId, price)
   },
   accounts: {
     list: () => ipcRenderer.invoke('accounts:list'),

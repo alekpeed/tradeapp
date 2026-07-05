@@ -48,6 +48,13 @@ src/renderer     React UI (Dashboard, Transactions, Instruments, Accounts, Impor
 src/shared       TypeScript types shared between main/preload/renderer
 ```
 
+## Documentation
+
+- [`DESIGN.md`](./DESIGN.md) — architecture, data model, roadmap.
+- [`USER_MANUAL.md`](./USER_MANUAL.md) — the full plain-English user manual.
+  The same manual lives inside the app on the **Help** page, where it can be
+  saved as a PDF with one click.
+
 ## Current feature set
 
 - Instruments: stocks, ETFs, mutual funds, bonds, crypto (top-100 seeded),
@@ -62,13 +69,19 @@ src/shared       TypeScript types shared between main/preload/renderer
 - Dashboard with open positions, cost basis by asset type, and realized
   gain/loss totals (all-time and year-to-date).
 - PDF export (via Electron's native `printToPDF`) for realized gains,
-  current positions, and full transaction history.
+  current positions, full transaction history, and the user manual.
+- Manual "current price" entry per instrument, driving market value and
+  unrealized gain columns/totals on the dashboard.
+- 20 color themes (12 light, 8 dark) and 4 layouts (classic sidebar, compact
+  icon sidebar, top bar, and a large-text "Big & Simple" mode with a
+  big-button Home screen), all switchable live from the Settings page.
+- In-app Help page containing the complete step-by-step manual.
 
 ## Not yet built (see DESIGN.md §6 for the full idea list)
 
 - PDF/OCR ingestion of scanned statements (CSV import and manual entry cover
   old trades today; document OCR staging is the next tier).
-- Live price feeds for unrealized P&L (manual price entry is the current
-  fallback — a `manual_price` column already exists on `instruments`).
+- Live price feeds for unrealized P&L (manual price entry on the dashboard
+  covers this today).
 - Corporate actions (splits/mergers auto-adjusting lots), wash-sale flags,
   multi-currency FX conversion, dividend reinvestment automation.

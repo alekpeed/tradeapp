@@ -21,6 +21,7 @@ export interface TradeAppApi {
       currency: string
       exchange?: string
     }): Promise<Instrument>
+    setManualPrice(instrumentId: number, price: number | null): Promise<void>
   }
   accounts: {
     list(): Promise<Account[]>
