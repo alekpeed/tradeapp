@@ -12,6 +12,9 @@ export default function Reports(): JSX.Element {
   const [positions, setPositions] = useState<Position[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [year, setYear] = useState<number | ''>('')
+  const [fromDate, setFromDate] = useState('')
+  const [toDate, setToDate] = useState('')
+  const [txnYear, setTxnYear] = useState('')
   const [exportStatus, setExportStatus] = useState<string | null>(null)
 
   useEffect(() => {
@@ -25,6 +28,38 @@ export default function Reports(): JSX.Element {
 
   const symbolFor = (id: number): string => instruments.find((i) => i.id === id)?.symbol ?? `#${id}`
   const accountFor = (id: number): string => accounts.find((a) => a.id === id)?.name ?? `#${id}`
+
+  const filteredTransactions = useMemo(
+    () =>
+      transactions.filter((t) => {
+        if (fromDate && t.date < fromDate) return false
+        if (toDate && t.date > toDate) return false
+        return true
+      }),
+    [transactions, fromDate, toDate]
+  )
+
+  function applyTxnYear(value: string): void {
+    setTxnYear(value)
+    const parsed = parseInt(value, 10)
+    if (value.length === 4 && !Number.isNaN(parsed)) {
+      setFromDate(`${parsed}-01-01`)
+      setToDate(`${parsed}-12-31`)
+    } else if (value === '') {
+      setFromDate('')
+      setToDate('')
+    }
+  }
+
+  const txnRangeLabel = useMemo(() => {
+    if (txnYear.length === 4 && fromDate === `${txnYear}-01-01` && toDate === `${txnYear}-12-31`) {
+      return `Transactions ${txnYear}`
+    }
+    if (fromDate || toDate) {
+      return `Transactions ${fromDate || 'beginning'} to ${toDate || 'today'}`
+    }
+    return 'Full Transaction History'
+  }, [txnYear, fromDate, toDate])
 
   const totalGain = useMemo(() => realizedGains.reduce((s, g) => s + g.gain, 0), [realizedGains])
   const shortTermGain = useMemo(
@@ -85,7 +120,7 @@ export default function Reports(): JSX.Element {
   }
 
   async function exportTransactionHistoryPdf(): Promise<void> {
-    const rowsHtml = transactions
+    const rowsHtml = filteredTransactions
       .map(
         (t) => `<tr>
           <td>${t.date}</td>
@@ -99,11 +134,13 @@ export default function Reports(): JSX.Element {
         </tr>`
       )
       .join('')
-    const html = `<table>
+    const html = `
+      <p>${filteredTransactions.length} transaction(s)${fromDate || toDate ? ` from ${fromDate || 'the beginning'} through ${toDate || 'today'}` : ''}.</p>
+      <table>
         <thead><tr><th>Date</th><th>Account</th><th>Symbol</th><th>Type</th><th>Qty</th><th>Price</th><th>Amount</th><th>Fees</th></tr></thead>
-        <tbody>${rowsHtml || '<tr><td colspan="8">No transactions.</td></tr>'}</tbody>
+        <tbody>${rowsHtml || '<tr><td colspan="8">No transactions in this period.</td></tr>'}</tbody>
       </table>`
-    const result = await window.tradeapp.reports.exportPdf({ title: 'Full Transaction History', html })
+    const result = await window.tradeapp.reports.exportPdf({ title: txnRangeLabel, html })
     setExportStatus(result.filePath ? `Saved to ${result.filePath}` : 'Export canceled.')
   }
 
@@ -172,13 +209,83 @@ export default function Reports(): JSX.Element {
       </div>
 
       <div className="card">
+        <h2 style={{ marginTop: 0 }}>Print transactions for any period</h2>
+        <p className="hint-text">
+          Type a year for a full-year report, or pick exact From/To dates for any custom period.
+          Leave everything blank for your complete history.
+        </p>
+        <div className="form-grid" style={{ marginBottom: 12 }}>
+          <label>
+            Year (quick pick)
+            <input
+              type="number"
+              value={txnYear}
+              onChange={(e) => applyTxnYear(e.target.value)}
+              placeholder="e.g. 2025"
+            />
+          </label>
+          <label>
+            From date
+            <input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
+          </label>
+          <label>
+            To date
+            <input type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} />
+          </label>
+          <button type="button" onClick={exportTransactionHistoryPdf}>
+            📄 Export &quot;{txnRangeLabel}&quot; to PDF
+          </button>
+        </div>
+        <p className="hint-text">
+          {filteredTransactions.length} transaction(s) in this period — preview below.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Account</th>
+              <th>Symbol</th>
+              <th>Type</th>
+              <th>Qty</th>
+              <th>Price</th>
+              <th>Amount</th>
+              <th>Fees</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredTransactions.slice(0, 50).map((t) => (
+              <tr key={t.id}>
+                <td>{t.date}</td>
+                <td>{accountFor(t.accountId)}</td>
+                <td>{symbolFor(t.instrumentId)}</td>
+                <td>{t.type}</td>
+                <td>{t.quantity}</td>
+                <td>${t.price.toFixed(2)}</td>
+                <td>${t.amount.toFixed(2)}</td>
+                <td>${t.fees.toFixed(2)}</td>
+              </tr>
+            ))}
+            {filteredTransactions.length === 0 && (
+              <tr>
+                <td colSpan={8} className="hint-text">
+                  No transactions in this period.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+        {filteredTransactions.length > 50 && (
+          <p className="hint-text">
+            Showing first 50 of {filteredTransactions.length} — the PDF will include all of them.
+          </p>
+        )}
+      </div>
+
+      <div className="card">
         <h2 style={{ marginTop: 0 }}>Other exports</h2>
-        <div style={{ display: 'flex', gap: 12 }}>
+        <div className="button-row">
           <button type="button" onClick={exportPositionsPdf}>
             Export current positions
-          </button>
-          <button type="button" onClick={exportTransactionHistoryPdf}>
-            Export full transaction history
           </button>
         </div>
       </div>

@@ -65,7 +65,10 @@ records your profit or loss.</p>
 <p>💡 <em>Example:</em> You buy 10 ounces of gold on March 1 at $2,000 each, then
 sell 4 ounces on March 15 at $2,100. The app knows those 4 ounces originally
 cost $2,000 each, so it records a profit of about $400 — you don't have to
-calculate anything.</p>`
+calculate anything.</p>
+<p><strong>Made a mistake?</strong> Every row in the history table has an
+<strong>✏️ Edit</strong> and a <strong>🗑 Delete</strong> button. Fix the numbers
+or remove the entry, and all profits are recalculated automatically.</p>`
   },
   {
     id: 'importing',
@@ -132,8 +135,16 @@ whether it was <em>short-term</em> (held one year or less) or
 <ul>
 <li>Type a year into the <strong>Year</strong> box to see just that year (for example, 2025 for this year's taxes).</li>
 <li>Click <strong>Export this table to PDF</strong> to save it as a PDF file anywhere you like — perfect for emailing to an accountant or printing.</li>
-<li>You can also export your <strong>current positions</strong> and your <strong>full transaction history</strong> as PDFs.</li>
-</ul>`
+</ul>
+<p>Below that, <strong>Print transactions for any period</strong> lets you turn any
+slice of your history into a printable PDF:</p>
+<ul>
+<li>Type a <strong>year</strong> (like 2024) and the From/To dates fill in automatically for that whole year.</li>
+<li>Or pick any exact <strong>From</strong> and <strong>To</strong> dates — a single month, a quarter, whatever you need.</li>
+<li>Leave everything blank to print your complete history.</li>
+<li>A preview shows exactly what will be in the PDF before you export it.</li>
+</ul>
+<p>You can also export your <strong>current positions</strong> as a PDF.</p>`
   },
   {
     id: 'instruments',
@@ -210,7 +221,8 @@ agree with your official tax forms.</p>`
     html: `
 <ul>
 <li><strong>"Cannot sell X: only Y open units available"</strong> — the app won't let you sell more than it knows you own. Usually this means an old purchase hasn't been entered yet. Add the missing buy (or a legacy opening position) first, then record the sale.</li>
-<li><strong>Made a typo in a trade?</strong> Right now the safest fix is to add a correcting entry. (An edit/delete feature with a full audit trail is on the roadmap.)</li>
+<li><strong>Made a typo in a trade?</strong> On the Record Trades page, every row in the history has an <strong>✏️ Edit</strong> and a <strong>🗑 Delete</strong> button. Fix the numbers or remove the entry — all profits and lots are recalculated automatically, and every change is kept in a behind-the-scenes audit log.</li>
+<li><strong>"This change would make a later sale invalid"</strong> — if editing or deleting a purchase would leave a later sale selling more than you owned, the app refuses and nothing changes. Fix or remove the later sale first.</li>
 <li><strong>CSV import shows errors for some rows</strong> — those rows are skipped, everything else imports fine. The error list tells you which rows to check (row numbers match your spreadsheet).</li>
 <li><strong>A sale was split into several rows on the Reports page</strong> — that's normal! If one sale drew from multiple purchases, tax rules require reporting each piece separately, and the app does that for you.</li>
 <li><strong>Numbers marked "(est.)"</strong> — these came from an import or legacy entry where the exact cost wasn't known. Treat them as approximate.</li>

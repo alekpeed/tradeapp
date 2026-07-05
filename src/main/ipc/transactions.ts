@@ -1,7 +1,7 @@
 import { ipcMain } from 'electron'
 import type Database from 'better-sqlite3'
 import type { NewTransactionInput } from '@shared/types'
-import { insertTransaction } from '../services/lotMatching'
+import { deleteTransaction, insertTransaction, updateTransaction } from '../services/lotMatching'
 import { rowToTransaction } from '../services/mappers'
 import { getPositions, getRealizedGains } from '../services/positions'
 
@@ -29,6 +29,14 @@ export function registerTransactionHandlers(db: Database.Database): void {
 
   ipcMain.handle('transactions:create', (_event, input: NewTransactionInput) => {
     return insertTransaction(db, input)
+  })
+
+  ipcMain.handle('transactions:update', (_event, id: number, input: NewTransactionInput) => {
+    return updateTransaction(db, id, input)
+  })
+
+  ipcMain.handle('transactions:delete', (_event, id: number) => {
+    deleteTransaction(db, id)
   })
 
   ipcMain.handle('positions:list', (_event, accountId?: number) => {

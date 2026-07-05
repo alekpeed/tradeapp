@@ -47,6 +47,7 @@ export default function Transactions(): JSX.Element {
   const [estimatedBasis, setEstimatedBasis] = useState(false)
   const [openLots, setOpenLots] = useState<OpenLotSummary[]>([])
   const [specificLotId, setSpecificLotId] = useState<number | ''>('')
+  const [editingId, setEditingId] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [status, setStatus] = useState<string | null>(null)
 
@@ -104,26 +105,76 @@ export default function Transactions(): JSX.Element {
       return
     }
 
+    const payload = {
+      accountId: Number(accountId),
+      instrumentId: Number(instrumentId),
+      type,
+      date,
+      quantity: qty,
+      price: prc,
+      fees: parseFloat(fees) || 0,
+      currency: 'USD',
+      fxRateToUsd: 1,
+      notes: notes.trim() || undefined,
+      estimatedBasis,
+      specificLotId: specificLotId ? Number(specificLotId) : undefined
+    }
+
     try {
-      await window.tradeapp.transactions.create({
-        accountId: Number(accountId),
-        instrumentId: Number(instrumentId),
-        type,
-        date,
-        quantity: qty,
-        price: prc,
-        fees: parseFloat(fees) || 0,
-        currency: 'USD',
-        fxRateToUsd: 1,
-        notes: notes.trim() || undefined,
-        estimatedBasis,
-        specificLotId: specificLotId ? Number(specificLotId) : undefined
-      })
-      setStatus('Transaction recorded.')
-      setQuantity('')
-      setPrice('')
-      setFees('0')
-      setNotes('')
+      if (editingId !== null) {
+        await window.tradeapp.transactions.update(editingId, payload)
+        setStatus(`Transaction #${editingId} updated — profits and lots were recalculated.`)
+      } else {
+        await window.tradeapp.transactions.create(payload)
+        setStatus('Transaction recorded.')
+      }
+      resetForm()
+      await loadTransactions()
+    } catch (err) {
+      setError((err as Error).message)
+    }
+  }
+
+  function resetForm(): void {
+    setEditingId(null)
+    setQuantity('')
+    setPrice('')
+    setFees('0')
+    setNotes('')
+    setEstimatedBasis(false)
+    setSpecificLotId('')
+  }
+
+  function startEdit(t: Transaction): void {
+    const instrument = instruments.find((i) => i.id === t.instrumentId)
+    setEditingId(t.id)
+    setAccountId(t.accountId)
+    setType(t.type)
+    if (instrument) setInstrumentType(instrument.type)
+    // instrumentId must be set after instrumentType (the type change effect clears it)
+    setTimeout(() => setInstrumentId(t.instrumentId), 0)
+    setDate(t.date)
+    setQuantity(String(t.quantity))
+    setPrice(String(t.price))
+    setFees(String(t.fees))
+    setNotes(t.notes ?? '')
+    setEstimatedBasis(t.estimatedBasis)
+    setError(null)
+    setStatus(null)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  async function handleDelete(t: Transaction): Promise<void> {
+    const label = `${t.type} ${t.quantity} × ${instrumentLabel(t.instrumentId)} on ${t.date}`
+    if (!window.confirm(`Delete this transaction?\n\n${label}\n\nProfits and lots will be recalculated.`)) {
+      return
+    }
+    setError(null)
+    setStatus(null)
+    try {
+      await window.tradeapp.transactions.delete(t.id)
+      if (editingId === t.id) resetForm()
+      setStatus('Transaction deleted — profits and lots were recalculated.')
       await loadTransactions()
     } catch (err) {
       setError((err as Error).message)
@@ -143,7 +194,15 @@ export default function Transactions(): JSX.Element {
     <div>
       <h1>Transactions</h1>
       <div className="card">
-        <h2 style={{ marginTop: 0 }}>Record a trade</h2>
+        <h2 style={{ marginTop: 0 }}>
+          {editingId !== null ? `✏️ Editing transaction #${editingId}` : 'Record a trade'}
+        </h2>
+        {editingId !== null && (
+          <p className="hint-text">
+            Change any field below and click &quot;Save changes&quot;. All profits and lots will be
+            recalculated automatically.
+          </p>
+        )}
         <form onSubmit={handleSubmit} className="form-grid">
           <label>
             Account
@@ -236,7 +295,12 @@ export default function Transactions(): JSX.Element {
               </select>
             </label>
           )}
-          <button type="submit">Save transaction</button>
+          <button type="submit">{editingId !== null ? 'Save changes' : 'Save transaction'}</button>
+          {editingId !== null && (
+            <button type="button" className="secondary" onClick={resetForm}>
+              Cancel edit
+            </button>
+          )}
         </form>
         {error && <p className="error-text">{error}</p>}
         {status && <p className="hint-text">{status}</p>}
@@ -256,6 +320,7 @@ export default function Transactions(): JSX.Element {
               <th>Amount</th>
               <th>Fees</th>
               <th>Source</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -270,11 +335,31 @@ export default function Transactions(): JSX.Element {
                 <td>${t.amount.toFixed(2)}</td>
                 <td>${t.fees.toFixed(2)}</td>
                 <td>{t.source}{t.estimatedBasis ? ' (est.)' : ''}</td>
+                <td style={{ whiteSpace: 'nowrap' }}>
+                  <button
+                    type="button"
+                    className="secondary"
+                    style={{ marginRight: 6, padding: '4px 10px' }}
+                    title="Edit this transaction"
+                    onClick={() => startEdit(t)}
+                  >
+                    ✏️ Edit
+                  </button>
+                  <button
+                    type="button"
+                    className="secondary"
+                    style={{ padding: '4px 10px' }}
+                    title="Delete this transaction"
+                    onClick={() => handleDelete(t)}
+                  >
+                    🗑 Delete
+                  </button>
+                </td>
               </tr>
             ))}
             {transactions.length === 0 && (
               <tr>
-                <td colSpan={9} className="hint-text">
+                <td colSpan={10} className="hint-text">
                   No transactions yet.
                 </td>
               </tr>

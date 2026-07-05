@@ -91,4 +91,13 @@ CREATE TABLE IF NOT EXISTS realized_gains (
 
 CREATE INDEX IF NOT EXISTS idx_realized_gains_account_instrument
   ON realized_gains(account_id, instrument_id, sold_date);
+
+CREATE TABLE IF NOT EXISTS audit_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  action TEXT NOT NULL,
+  transaction_id INTEGER NOT NULL,
+  old_data TEXT,
+  new_data TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
 `

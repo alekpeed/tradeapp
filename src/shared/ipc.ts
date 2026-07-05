@@ -35,6 +35,8 @@ export interface TradeAppApi {
   transactions: {
     list(filters?: { accountId?: number; instrumentId?: number }): Promise<Transaction[]>
     create(input: NewTransactionInput): Promise<Transaction>
+    update(id: number, input: NewTransactionInput): Promise<Transaction>
+    delete(id: number): Promise<void>
   }
   positions: {
     list(accountId?: number): Promise<Position[]>

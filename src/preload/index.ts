@@ -14,7 +14,9 @@ const api: TradeAppApi = {
   },
   transactions: {
     list: (filters) => ipcRenderer.invoke('transactions:list', filters),
-    create: (input) => ipcRenderer.invoke('transactions:create', input)
+    create: (input) => ipcRenderer.invoke('transactions:create', input),
+    update: (id, input) => ipcRenderer.invoke('transactions:update', id, input),
+    delete: (id) => ipcRenderer.invoke('transactions:delete', id)
   },
   positions: {
     list: (accountId) => ipcRenderer.invoke('positions:list', accountId)

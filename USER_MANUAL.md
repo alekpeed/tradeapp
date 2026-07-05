@@ -63,6 +63,10 @@ your profit or loss.
 > cost $2,000 each, so it records a profit of about $400 — you don't have to
 > calculate anything.
 
+**Made a mistake?** Every row in the history table has an **✏️ Edit** and a
+**🗑 Delete** button. Fix the numbers or remove the entry, and all profits are
+recalculated automatically.
+
 ---
 
 ## 📥 Bringing in old trades
@@ -132,8 +136,18 @@ distinction matters for taxes.
   for this year's taxes).
 - Click **Export this table to PDF** to save it as a PDF file anywhere you
   like — perfect for emailing to an accountant or printing.
-- You can also export your **current positions** and your **full transaction
-  history** as PDFs.
+
+Below that, **Print transactions for any period** lets you turn any slice of
+your history into a printable PDF:
+
+- Type a **year** (like 2024) and the From/To dates fill in automatically for
+  that whole year.
+- Or pick any exact **From** and **To** dates — a single month, a quarter,
+  whatever you need.
+- Leave everything blank to print your complete history.
+- A preview shows exactly what will be in the PDF before you export it.
+
+You can also export your **current positions** as a PDF.
 
 ---
 
@@ -214,8 +228,13 @@ All your data lives in a single file on this computer:
   sell more than it knows you own. Usually this means an old purchase hasn't
   been entered yet. Add the missing buy (or a legacy opening position) first,
   then record the sale.
-- **Made a typo in a trade?** Right now the safest fix is to add a correcting
-  entry. (An edit/delete feature with a full audit trail is on the roadmap.)
+- **Made a typo in a trade?** On the Record Trades page, every row in the
+  history has an **✏️ Edit** and a **🗑 Delete** button. Fix the numbers or
+  remove the entry — all profits and lots are recalculated automatically, and
+  every change is kept in a behind-the-scenes audit log.
+- **"This change would make a later sale invalid"** — if editing or deleting
+  a purchase would leave a later sale selling more than you owned, the app
+  refuses and nothing changes. Fix or remove the later sale first.
 - **CSV import shows errors for some rows** — those rows are skipped,
   everything else imports fine. The error list tells you which rows to check
   (row numbers match your spreadsheet).
