@@ -11,6 +11,15 @@ import type {
   Transaction
 } from './types'
 
+export type UpdateStatus =
+  | { state: 'idle' }
+  | { state: 'checking' }
+  | { state: 'available'; version: string }
+  | { state: 'not-available' }
+  | { state: 'downloading'; percent: number }
+  | { state: 'downloaded'; version: string }
+  | { state: 'error'; message: string }
+
 export interface TradeAppApi {
   instruments: {
     list(type?: InstrumentType): Promise<Instrument[]>
@@ -64,5 +73,11 @@ export interface TradeAppApi {
       title: string
       html: string
     }): Promise<{ filePath: string | null }>
+  }
+  updater: {
+    getVersion(): Promise<string>
+    checkNow(): Promise<void>
+    restartAndInstall(): Promise<void>
+    onStatus(callback: (status: UpdateStatus) => void): () => void
   }
 }

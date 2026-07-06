@@ -42,6 +42,32 @@ npm run dist:win
 Produces the same NSIS installer under `dist/`. The app icon lives at
 `build/icon.ico` (multi-size, generated) with a 256px PNG alongside it.
 
+## Shipping an update (auto-update)
+
+The installed app checks GitHub for new versions on startup and updates itself
+— no reinstalling required on the user's end. To cut a release:
+
+1. Bump `"version"` in `package.json` (e.g. `0.2.0` → `0.3.0`).
+2. Commit that change, then tag and push:
+   ```bash
+   git tag v0.3.0
+   git push origin v0.3.0
+   ```
+3. The tag push triggers `build-windows.yml`, which builds the installer and
+   **publishes a GitHub Release** (via `electron-builder --publish always`),
+   including the `latest.yml` feed file the auto-updater reads.
+4. That's it — every installed copy of the app will find this release on its
+   next startup (or immediately, if the user clicks "Check for updates now" in
+   Settings), download it in the background, and prompt to restart once ready.
+
+A plain "Run workflow" click from the Actions tab (no tag) still works too —
+it just builds a downloadable test `.exe` without publishing a release, same
+as before.
+
+Note: since the app isn't code-signed (that requires a paid certificate),
+Windows SmartScreen may still show an "unknown publisher" warning on a fresh
+install — this is cosmetic and doesn't affect the auto-update mechanism.
+
 ## Where data lives
 
 The SQLite database is created under the OS "app data" directory for the
@@ -90,6 +116,9 @@ src/shared       TypeScript types shared between main/preload/renderer
   icon sidebar, top bar, and a large-text "Big & Simple" mode with a
   big-button Home screen), all switchable live from the Settings page.
 - In-app Help page containing the complete step-by-step manual.
+- Auto-update: the installed app checks GitHub Releases on startup, downloads
+  updates in the background, and prompts to restart via a corner toast (also
+  a manual "Check for updates now" button in Settings).
 
 ## Not yet built (see DESIGN.md §6 for the full idea list)
 

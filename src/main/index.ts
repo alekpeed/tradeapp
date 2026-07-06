@@ -2,6 +2,7 @@ import { app, BrowserWindow, shell } from 'electron'
 import { join } from 'path'
 import { getDb, closeDb } from './db/db'
 import { registerAllIpcHandlers } from './ipc'
+import { initAutoUpdater } from './updater'
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -36,6 +37,7 @@ app.whenReady().then(() => {
   registerAllIpcHandlers(db)
 
   createWindow()
+  initAutoUpdater()
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

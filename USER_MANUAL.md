@@ -223,6 +223,21 @@ Open **Settings** to change how the app looks and feels:
 
 ---
 
+## 🔄 Staying up to date
+
+TradeApp checks for new versions automatically each time it starts (it needs
+an internet connection for this — everything else in the app works fine
+offline). You don't need to do anything:
+
+1. If an update is found, it downloads quietly in the background while you keep working.
+2. Once it's ready, a small box appears in the bottom-right corner of the window saying **"Update ready."**
+3. Click **"Restart now to update"** whenever it's convenient — the app closes and reopens on the new version in a few seconds. Nothing is lost; all your data stays exactly as it was.
+
+Don't want to wait for the automatic check? Go to **Settings** and click
+**"Check for updates now"** any time.
+
+---
+
 ## 💾 Keeping your data safe
 
 All your data lives in a single file on this computer:

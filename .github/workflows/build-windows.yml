@@ -6,6 +6,11 @@ on:
     tags:
       - 'v*'
 
+# Needed so electron-builder can publish a GitHub Release when triggered by a
+# version tag (the auto-updater reads that release's latest.yml to find updates).
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: windows-latest
@@ -22,10 +27,22 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build app and Windows installer
-        run: |
-          npm run build
-          npx electron-builder --win --publish never
+      - name: Build app
+        run: npm run build
+
+      # Tag pushes (v1.2.3) publish a real GitHub Release + latest.yml, which
+      # is what the in-app auto-updater checks against.
+      - name: Build and publish Windows installer (tagged release)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx electron-builder --win --publish always
+
+      # Manual "Run workflow" clicks just produce a downloadable test build,
+      # no release is published.
+      - name: Build Windows installer (manual test build)
+        if: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+        run: npx electron-builder --win --publish never
 
       - name: Upload installer artifact
         uses: actions/upload-artifact@v4

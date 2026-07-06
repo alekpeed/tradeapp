@@ -216,6 +216,22 @@ agree with your official tax forms.</p>`
 </ul>`
   },
   {
+    id: 'updates',
+    icon: '🔄',
+    title: 'Staying up to date',
+    html: `
+<p>TradeApp checks for new versions automatically each time it starts (it needs
+an internet connection for this — everything else in the app works fine
+offline). You don't need to do anything:</p>
+<ol>
+<li>If an update is found, it downloads quietly in the background while you keep working.</li>
+<li>Once it's ready, a small box appears in the bottom-right corner of the window saying <strong>"Update ready."</strong></li>
+<li>Click <strong>"Restart now to update"</strong> whenever it's convenient — the app closes and reopens on the new version in a few seconds. Nothing is lost; all your data stays exactly as it was.</li>
+</ol>
+<p>Don't want to wait for the automatic check? Go to <strong>Settings</strong> and click
+<strong>"Check for updates now"</strong> any time.</p>`
+  },
+  {
     id: 'backup',
     icon: '💾',
     title: 'Keeping your data safe',

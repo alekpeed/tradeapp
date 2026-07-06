@@ -33,6 +33,16 @@ const api: TradeAppApi = {
   },
   reports: {
     exportPdf: (input) => ipcRenderer.invoke('reports:exportPdf', input)
+  },
+  updater: {
+    getVersion: () => ipcRenderer.invoke('updater:getVersion'),
+    checkNow: () => ipcRenderer.invoke('updater:checkNow'),
+    restartAndInstall: () => ipcRenderer.invoke('updater:restartAndInstall'),
+    onStatus: (callback) => {
+      const listener = (_event: unknown, status: Parameters<typeof callback>[0]): void => callback(status)
+      ipcRenderer.on('updater:status', listener)
+      return () => ipcRenderer.removeListener('updater:status', listener)
+    }
   }
 }
 

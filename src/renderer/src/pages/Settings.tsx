@@ -1,12 +1,59 @@
+import { useEffect, useState } from 'react'
+import type { UpdateStatus } from '@shared/ipc'
 import { LAYOUTS, useSettings } from '../context/Settings'
 import { THEMES } from '../themes'
 
+function UpdateStatusText({ status }: { status: UpdateStatus }): JSX.Element | null {
+  switch (status.state) {
+    case 'checking':
+      return <p className="hint-text">Checking for updates…</p>
+    case 'available':
+      return <p className="hint-text">Update {status.version} found — downloading now…</p>
+    case 'not-available':
+      return <p className="hint-text">You're up to date.</p>
+    case 'downloading':
+      return <p className="hint-text">Downloading update… {status.percent}%</p>
+    case 'downloaded':
+      return (
+        <p className="hint-text">
+          Version {status.version} is downloaded and ready — use the &quot;Restart now to update&quot;
+          button in the corner of the screen whenever you're ready.
+        </p>
+      )
+    case 'error':
+      return <p className="error-text">Couldn't check for updates: {status.message}</p>
+    default:
+      return null
+  }
+}
+
 export default function Settings(): JSX.Element {
   const { themeId, layout, setThemeId, setLayout } = useSettings()
+  const [version, setVersion] = useState('')
+  const [updateStatus, setUpdateStatus] = useState<UpdateStatus>({ state: 'idle' })
+
+  useEffect(() => {
+    window.tradeapp.updater.getVersion().then(setVersion)
+    return window.tradeapp.updater.onStatus(setUpdateStatus)
+  }, [])
+
+  async function checkForUpdates(): Promise<void> {
+    setUpdateStatus({ state: 'checking' })
+    await window.tradeapp.updater.checkNow()
+  }
 
   return (
     <div>
       <h1>Settings</h1>
+
+      <div className="card">
+        <h2 style={{ marginTop: 0 }}>Software update</h2>
+        <p className="hint-text">You're running version {version || '…'}.</p>
+        <button type="button" onClick={checkForUpdates}>
+          Check for updates now
+        </button>
+        <UpdateStatusText status={updateStatus} />
+      </div>
 
       <div className="card">
         <h2 style={{ marginTop: 0 }}>Layout</h2>

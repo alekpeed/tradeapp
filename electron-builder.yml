@@ -20,3 +20,7 @@ nsis:
   createDesktopShortcut: true
   createStartMenuShortcut: true
 extraResources: []
+publish:
+  provider: github
+  owner: alekpeed
+  repo: tradeapp

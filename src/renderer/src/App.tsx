@@ -10,6 +10,7 @@ import Import from './pages/Import'
 import Reports from './pages/Reports'
 import Help from './pages/Help'
 import Settings from './pages/Settings'
+import UpdateToast from './components/UpdateToast'
 
 export interface NavItem {
   to: string
@@ -102,6 +103,7 @@ export default function App(): JSX.Element {
         <HashRouter>
           <Shell />
         </HashRouter>
+        <UpdateToast />
       </AppDataProvider>
     </SettingsProvider>
   )
