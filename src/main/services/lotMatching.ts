@@ -165,9 +165,39 @@ function applyClosingEffect(db: Database.Database, txn: TxnRow): void {
   }
 }
 
+/**
+ * A split's `quantity` field holds the ratio: new units per old unit (4 for a
+ * 4-for-1 split, 0.1 for a 1-for-10 reverse split). Open lot quantities scale up
+ * by the ratio and per-unit basis scales down, so total remaining basis — and
+ * any later sale's gain — is unchanged. Already-realized gains are history from
+ * before the split and are left untouched.
+ */
+function applySplitEffect(db: Database.Database, txn: TxnRow): void {
+  if (txn.quantity <= 0) {
+    throw new Error(`Split ratio must be positive (got ${txn.quantity})`)
+  }
+  const lots = db
+    .prepare(
+      `SELECT id, remaining_quantity, cost_basis_per_unit FROM lots
+       WHERE account_id = ? AND instrument_id = ? AND remaining_quantity > 0`
+    )
+    .all(txn.account_id, txn.instrument_id) as {
+    id: number
+    remaining_quantity: number
+    cost_basis_per_unit: number
+  }[]
+  const update = db.prepare(
+    `UPDATE lots SET remaining_quantity = ?, cost_basis_per_unit = ? WHERE id = ?`
+  )
+  for (const lot of lots) {
+    update.run(lot.remaining_quantity * txn.quantity, lot.cost_basis_per_unit / txn.quantity, lot.id)
+  }
+}
+
 function applyEffects(db: Database.Database, txn: TxnRow): void {
   if (OPENING_TYPES.includes(txn.type)) applyOpeningEffect(db, txn)
   else if (CLOSING_TYPES.includes(txn.type)) applyClosingEffect(db, txn)
+  else if (txn.type === 'split') applySplitEffect(db, txn)
 }
 
 /**

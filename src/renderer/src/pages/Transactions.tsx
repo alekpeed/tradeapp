@@ -63,6 +63,7 @@ export default function Transactions(): JSX.Element {
 
   const selectedAccount = accounts.find((a) => a.id === accountId)
   const isClosingType = type === 'sell' || type === 'transfer_out'
+  const isSplit = type === 'split'
 
   async function loadTransactions(): Promise<void> {
     setTransactions(await window.tradeapp.transactions.list())
@@ -95,9 +96,9 @@ export default function Transactions(): JSX.Element {
       return
     }
     const qty = parseFloat(quantity)
-    const prc = parseFloat(price)
+    const prc = isSplit ? 0 : parseFloat(price)
     if (Number.isNaN(qty) || qty <= 0) {
-      setError('Quantity must be a positive number')
+      setError(isSplit ? 'Split ratio must be a positive number' : 'Quantity must be a positive number')
       return
     }
     if (Number.isNaN(prc) || prc < 0) {
@@ -126,13 +127,33 @@ export default function Transactions(): JSX.Element {
         setStatus(`Transaction #${editingId} updated — profits and lots were recalculated.`)
       } else {
         await window.tradeapp.transactions.create(payload)
-        setStatus('Transaction recorded.')
+        const washWarning = type === 'buy' ? await checkWashSale(payload.instrumentId, payload.date) : null
+        setStatus(washWarning ?? 'Transaction recorded.')
       }
       resetForm()
       await loadTransactions()
     } catch (err) {
       setError((err as Error).message)
     }
+  }
+
+  // Buying back within 30 days of selling the same instrument at a loss can
+  // trigger the US wash-sale rule (the loss gets disallowed). Warn, don't block.
+  async function checkWashSale(instId: number, buyDate: string): Promise<string | null> {
+    const gains = await window.tradeapp.realizedGains.list({})
+    const bought = new Date(buyDate).getTime()
+    const hit = gains.find(
+      (g) =>
+        g.instrumentId === instId &&
+        g.gain < 0 &&
+        Math.abs(bought - new Date(g.soldDate).getTime()) / (1000 * 60 * 60 * 24) <= 30
+    )
+    if (!hit) return null
+    return (
+      `Transaction recorded — but heads up: you sold this instrument at a loss on ${hit.soldDate}, ` +
+      `within 30 days of this purchase. US wash-sale rules may disallow that loss for taxes. ` +
+      `Worth mentioning to your tax preparer.`
+    )
   }
 
   function resetForm(): void {
@@ -255,12 +276,21 @@ export default function Transactions(): JSX.Element {
             <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           </label>
           <label>
-            Quantity
-            <input value={quantity} onChange={(e) => setQuantity(e.target.value)} placeholder="0.00" />
+            {isSplit ? 'Split ratio (new per old)' : 'Quantity'}
+            <input
+              value={quantity}
+              onChange={(e) => setQuantity(e.target.value)}
+              placeholder={isSplit ? 'e.g. 4 for a 4-for-1 split' : '0.00'}
+            />
           </label>
           <label>
             Price per unit ($)
-            <input value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0.00" />
+            <input
+              value={isSplit ? '' : price}
+              onChange={(e) => setPrice(e.target.value)}
+              placeholder={isSplit ? 'not needed for splits' : '0.00'}
+              disabled={isSplit}
+            />
           </label>
           <label>
             Fees ($)
@@ -302,6 +332,14 @@ export default function Transactions(): JSX.Element {
             </button>
           )}
         </form>
+        {isSplit && (
+          <p className="hint-text">
+            💡 A stock split multiplies your shares without changing what you invested. Enter the
+            ratio of new shares per old share: a 4-for-1 split is <strong>4</strong>, a 1-for-10
+            reverse split is <strong>0.1</strong>. Your share count and per-share cost update
+            automatically; your total cost basis stays the same.
+          </p>
+        )}
         {error && <p className="error-text">{error}</p>}
         {status && <p className="hint-text">{status}</p>}
       </div>

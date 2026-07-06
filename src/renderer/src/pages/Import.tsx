@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Papa from 'papaparse'
 import type { CsvColumnMapping, CsvImportRow, InstrumentType } from '@shared/types'
 import { useAppData } from '../context/AppData'
 
@@ -47,16 +48,12 @@ export default function Import(): JSX.Element {
   const [legacyStatus, setLegacyStatus] = useState<string | null>(null)
   const [legacyError, setLegacyError] = useState<string | null>(null)
 
-  async function handleChooseCsv(): Promise<void> {
-    setCsvError(null)
-    setImportResult(null)
-    const result = await window.tradeapp.csv.openAndParse()
-    if (!result) return
-    setCsvFilePath(result.filePath)
-    setHeaders(result.headers)
-    setRows(result.rows)
+  const [pasteText, setPasteText] = useState('')
+  const [showPaste, setShowPaste] = useState(false)
+
+  function guessMapping(headerList: string[]): void {
     const guess = (name: string): string =>
-      result.headers.find((h) => h.toLowerCase().includes(name)) ?? ''
+      headerList.find((h) => h.toLowerCase().includes(name)) ?? ''
     setMapping({
       date: guess('date'),
       type: guess('type') || guess('action'),
@@ -66,6 +63,41 @@ export default function Import(): JSX.Element {
       fees: guess('fee') || guess('commission'),
       notes: guess('note') || guess('description')
     })
+  }
+
+  async function handleChooseCsv(): Promise<void> {
+    setCsvError(null)
+    setImportResult(null)
+    const result = await window.tradeapp.csv.openAndParse()
+    if (!result) return
+    setCsvFilePath(result.filePath)
+    setHeaders(result.headers)
+    setRows(result.rows)
+    guessMapping(result.headers)
+  }
+
+  function handleParsePaste(): void {
+    setCsvError(null)
+    setImportResult(null)
+    const text = pasteText.trim()
+    if (!text) {
+      setCsvError('Paste some rows first — include the header row (Date, Symbol, Quantity, Price…)')
+      return
+    }
+    // Papaparse auto-detects the delimiter, so both spreadsheet copies (tabs)
+    // and comma-separated text work.
+    const parsed = Papa.parse<CsvImportRow>(text, { header: true, skipEmptyLines: true })
+    const fields = (parsed.meta.fields ?? []).filter((f) => f && f.trim() !== '')
+    if (fields.length < 2 || parsed.data.length === 0) {
+      setCsvError(
+        'Could not read that as a table. Make sure the first line is a header row and each row has the same columns.'
+      )
+      return
+    }
+    setCsvFilePath(`(pasted rows — ${parsed.data.length} rows)`)
+    setHeaders(fields)
+    setRows(parsed.data)
+    guessMapping(fields)
   }
 
   async function handleCommitImport(): Promise<void> {
@@ -152,9 +184,32 @@ export default function Import(): JSX.Element {
           Export a CSV from her brokerage or exchange (Fidelity, Schwab, Coinbase, etc.) and map its
           columns below. Nothing is saved until you click &quot;Import rows&quot;.
         </p>
-        <button type="button" onClick={handleChooseCsv}>
-          Choose CSV file…
-        </button>
+        <div className="button-row">
+          <button type="button" onClick={handleChooseCsv}>
+            Choose CSV file…
+          </button>
+          <button type="button" className="secondary" onClick={() => setShowPaste(!showPaste)}>
+            📋 …or paste rows from a spreadsheet
+          </button>
+        </div>
+        {showPaste && (
+          <div style={{ marginTop: 12 }}>
+            <p className="hint-text">
+              Copy rows straight out of Excel, Google Sheets, or a statement table (include the
+              header row) and paste them here:
+            </p>
+            <textarea
+              value={pasteText}
+              onChange={(e) => setPasteText(e.target.value)}
+              rows={6}
+              style={{ width: '100%', fontFamily: 'monospace', fontSize: 12 }}
+              placeholder={'Date\tSymbol\tType\tQuantity\tPrice\n2023-05-01\tAAPL\tbuy\t10\t170.25'}
+            />
+            <button type="button" onClick={handleParsePaste} style={{ marginTop: 8 }}>
+              Read pasted rows
+            </button>
+          </div>
+        )}
         {csvFilePath && <p className="hint-text">Loaded: {csvFilePath} ({rows.length} rows)</p>}
 
         {headers.length > 0 && (

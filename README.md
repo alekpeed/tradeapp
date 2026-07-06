@@ -23,15 +23,24 @@ npm run dev       # launches the app with hot reload
 npm run typecheck # type-check main/preload/renderer
 ```
 
-## Building the Windows installer
+## Getting the Windows installer
+
+**Easiest — let GitHub build it for you.** The
+`.github/workflows/build-windows.yml` workflow builds the NSIS installer on a
+real Windows runner. Trigger it from the repo's **Actions** tab ("Build
+Windows installer" → "Run workflow"), or push a version tag like `v0.1.0`.
+When the run finishes, download the `TradeApp-windows-installer` artifact —
+the `.exe` inside is the installer.
+
+**Or build locally on any Windows machine:**
 
 ```bash
+npm install
 npm run dist:win
 ```
 
-Produces an NSIS installer under `dist/`. Add a `build/icon.ico` before
-shipping if you want a custom app icon (electron-builder falls back to a
-default Electron icon otherwise).
+Produces the same NSIS installer under `dist/`. The app icon lives at
+`build/icon.ico` (multi-size, generated) with a 256px PNG alongside it.
 
 ## Where data lives
 
@@ -63,13 +72,18 @@ src/shared       TypeScript types shared between main/preload/renderer
 - Manual transaction entry (buy/sell/dividend/interest/split/transfer/fee/etc.)
   with automatic lot creation and lot-matching on sells, producing realized
   gain/loss records with short/long-term holding-period classification.
-- CSV import wizard with column mapping and a preview step before committing.
+- CSV import wizard with column mapping and a preview step before committing —
+  plus paste-rows-from-a-spreadsheet as an alternative to a file.
 - Manual "legacy opening position" entry for old holdings where only a
   year-end balance is known (flagged as estimated cost basis).
-- Dashboard with open positions, cost basis by asset type, and realized
-  gain/loss totals (all-time and year-to-date).
+- Stock splits: the `split` transaction type scales open-lot quantities and
+  per-unit basis by the ratio (reverse splits via fractional ratios).
+- Wash-sale warnings: loss-sales with a repurchase within ±30 days are flagged
+  ⚠️ on Reports (and in the PDF), with a heads-up when recording the buy.
+- Dashboard with open positions, allocation chart by asset type, realized
+  gain-by-year chart, and realized gain/loss totals (all-time and YTD).
 - PDF export (via Electron's native `printToPDF`) for realized gains,
-  current positions, full transaction history, and the user manual.
+  current positions, any date range of transactions, and the user manual.
 - Manual "current price" entry per instrument, driving market value and
   unrealized gain columns/totals on the dashboard.
 - 20 color themes (12 light, 8 dark) and 4 layouts (classic sidebar, compact
@@ -83,5 +97,7 @@ src/shared       TypeScript types shared between main/preload/renderer
   old trades today; document OCR staging is the next tier).
 - Live price feeds for unrealized P&L (manual price entry on the dashboard
   covers this today).
-- Corporate actions (splits/mergers auto-adjusting lots), wash-sale flags,
-  multi-currency FX conversion, dividend reinvestment automation.
+- Mergers/spin-offs/ticker changes (splits are handled; other corporate
+  actions still need manual correcting entries).
+- Multi-currency FX conversion (schema fields exist; app is USD-first today),
+  dividend reinvestment automation.

@@ -68,7 +68,15 @@ cost $2,000 each, so it records a profit of about $400 — you don't have to
 calculate anything.</p>
 <p><strong>Made a mistake?</strong> Every row in the history table has an
 <strong>✏️ Edit</strong> and a <strong>🗑 Delete</strong> button. Fix the numbers
-or remove the entry, and all profits are recalculated automatically.</p>`
+or remove the entry, and all profits are recalculated automatically.</p>
+<p><strong>Stock split?</strong> Pick the <em>split</em> transaction type and enter
+the ratio of new shares per old share (a 4-for-1 split is 4; a 1-for-10 reverse
+split is 0.1). Your share count and per-share cost update automatically — your
+total investment stays the same.</p>
+<p><strong>Wash-sale watch:</strong> if you buy something back within 30 days of
+selling it at a loss, the app shows a gentle warning (US tax rules may disallow
+that loss). It never blocks you — it just gives you a heads-up, and marks the
+affected rows with ⚠️ on the Reports page.</p>`
   },
   {
     id: 'importing',
@@ -76,10 +84,12 @@ or remove the entry, and all profits are recalculated automatically.</p>`
     title: 'Bringing in old trades',
     html: `
 <p>The <strong>Import Old Trades</strong> page gives you two ways to enter history:</p>
-<p><strong>Way 1 — Import a CSV file.</strong> Most brokerages and crypto
-exchanges let you download your trade history as a "CSV" file (a simple
+<p><strong>Way 1 — Import a CSV file (or paste rows).</strong> Most brokerages and
+crypto exchanges let you download your trade history as a "CSV" file (a simple
 spreadsheet). On their website look for <em>Export</em>, <em>Download history</em>,
-or <em>Statements &amp; documents</em>.</p>
+or <em>Statements &amp; documents</em>. No file handy? Click
+<strong>"…or paste rows from a spreadsheet"</strong> and paste rows copied straight
+out of Excel, Google Sheets, or a statement table — include the header row.</p>
 <ol>
 <li>Click <strong>Choose CSV file…</strong> and pick the downloaded file.</li>
 <li>The app guesses which column is the date, which is the price, and so on. Check its guesses in the dropdowns and fix any that are wrong.</li>
@@ -105,7 +115,12 @@ reports stay honest.</p>`
 <li><strong>Realized gain</strong> — profit (or loss) from things you've <em>already sold</em>, all-time and this year.</li>
 <li><strong>Unrealized gain</strong> — profit on paper for things you <em>still own</em>. This appears once you set a current price (see next section).</li>
 </ul>
-<p>The tables below show your holdings by asset type and each position in detail.</p>`
+<p>Below the numbers you'll find two pictures of your money:</p>
+<ul>
+<li><strong>Where your money is</strong> — a color bar showing how your investments split across stocks, crypto, gold, and so on. Hover over any segment or legend entry to see the exact amount.</li>
+<li><strong>Realized gain by year</strong> — columns showing your profit (or loss) from completed sales, year by year. Hover over a column for the exact figure.</li>
+</ul>
+<p>The tables below the charts show the same numbers in detail.</p>`
   },
   {
     id: 'prices',
@@ -244,6 +259,8 @@ agree with your official tax forms.</p>`
 <li><strong>Unrealized gain/loss</strong> — profit or loss "on paper" for things you still hold.</li>
 <li><strong>Short-term / long-term</strong> — held one year or less / more than one year. Long-term profits are usually taxed at a lower rate.</li>
 <li><strong>FIFO / LIFO</strong> — rules for deciding which purchase you're selling (oldest-first / newest-first).</li>
+<li><strong>Stock split</strong> — a company multiplies everyone's shares (4-for-1 means every 1 share becomes 4). You own more shares, each worth less; your total is unchanged.</li>
+<li><strong>Wash sale</strong> — selling at a loss and buying the same thing back within 30 days. US tax rules may disallow the loss; the app flags these with ⚠️.</li>
 <li><strong>CSV</strong> — a simple spreadsheet file most brokerages can export.</li>
 </ul>`
   }

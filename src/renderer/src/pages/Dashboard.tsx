@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import type { Position, RealizedGainLoss } from '@shared/types'
 import { useAppData } from '../context/AppData'
+import { AllocationChart, GainsByYearChart } from '../components/charts'
 
 function PriceCell({
   position,
@@ -85,6 +86,15 @@ export default function Dashboard(): JSX.Element {
     }
     return [...map.entries()].sort((a, b) => b[1] - a[1])
   }, [positions])
+
+  const gainsByYear = useMemo(() => {
+    const map = new Map<number, number>()
+    for (const g of realizedGains) {
+      const yr = new Date(g.soldDate).getFullYear()
+      map.set(yr, (map.get(yr) ?? 0) + g.gain)
+    }
+    return [...map.entries()].map(([year, gain]) => ({ year, gain }))
+  }, [realizedGains])
 
   async function handlePriceSaved(): Promise<void> {
     await reload()
@@ -198,9 +208,10 @@ export default function Dashboard(): JSX.Element {
         </table>
       </div>
 
-      <h2>Cost basis by asset type</h2>
+      <h2>Where your money is (by asset type)</h2>
       <div className="card">
-        <table>
+        <AllocationChart slices={byType.map(([label, value]) => ({ label, value }))} />
+        <table style={{ marginTop: 16 }}>
           <thead>
             <tr>
               <th>Type</th>
@@ -223,6 +234,11 @@ export default function Dashboard(): JSX.Element {
             )}
           </tbody>
         </table>
+      </div>
+
+      <h2>Realized gain by year</h2>
+      <div className="card">
+        <GainsByYearChart data={gainsByYear} />
       </div>
     </div>
   )

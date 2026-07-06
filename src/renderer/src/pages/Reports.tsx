@@ -61,6 +61,25 @@ export default function Reports(): JSX.Element {
     return 'Full Transaction History'
   }, [txnYear, fromDate, toDate])
 
+  // Wash-sale heuristic: a loss-sale where a *different* buy of the same
+  // instrument happened within 30 days before or after the sale date. The lot
+  // that was sold is excluded (its id equals its opening buy's transaction id).
+  const washSaleGainIds = useMemo(() => {
+    const flagged = new Set<number>()
+    const buys = transactions.filter((t) => t.type === 'buy')
+    for (const g of realizedGains) {
+      if (g.gain >= 0) continue
+      const sold = new Date(g.soldDate).getTime()
+      const hit = buys.some((b) => {
+        if (b.instrumentId !== g.instrumentId || b.id === g.lotId) return false
+        const diff = Math.abs(new Date(b.date).getTime() - sold) / (1000 * 60 * 60 * 24)
+        return diff <= 30
+      })
+      if (hit) flagged.add(g.id)
+    }
+    return flagged
+  }, [realizedGains, transactions])
+
   const totalGain = useMemo(() => realizedGains.reduce((s, g) => s + g.gain, 0), [realizedGains])
   const shortTermGain = useMemo(
     () => realizedGains.filter((g) => g.term === 'short').reduce((s, g) => s + g.gain, 0),
@@ -82,13 +101,17 @@ export default function Reports(): JSX.Element {
           <td>${g.quantity}</td>
           <td>$${g.proceeds.toFixed(2)}</td>
           <td>$${g.costBasis.toFixed(2)}</td>
-          <td class="${g.gain >= 0 ? 'gain-positive' : 'gain-negative'}">$${g.gain.toFixed(2)}</td>
+          <td class="${g.gain >= 0 ? 'gain-positive' : 'gain-negative'}">$${g.gain.toFixed(2)}${washSaleGainIds.has(g.id) ? ' *' : ''}</td>
           <td>${g.term}</td>
         </tr>`
       )
       .join('')
+    const washNote = realizedGains.some((g) => washSaleGainIds.has(g.id))
+      ? '<p>* Possible wash sale: another purchase of the same instrument within 30 days of this loss-sale. The loss may be disallowed under US wash-sale rules.</p>'
+      : ''
     const html = `
       <p>Short-term gain/loss: $${shortTermGain.toFixed(2)} &nbsp;|&nbsp; Long-term gain/loss: $${longTermGain.toFixed(2)} &nbsp;|&nbsp; Total: $${totalGain.toFixed(2)}</p>
+      ${washNote}
       <table>
         <thead><tr><th>Symbol</th><th>Account</th><th>Acquired</th><th>Sold</th><th>Qty</th><th>Proceeds</th><th>Cost basis</th><th>Gain/loss</th><th>Term</th></tr></thead>
         <tbody>${rowsHtml || '<tr><td colspan="9">No realized gains in this period.</td></tr>'}</tbody>
@@ -193,7 +216,17 @@ export default function Reports(): JSX.Element {
                 <td>{g.quantity}</td>
                 <td>${g.proceeds.toFixed(2)}</td>
                 <td>${g.costBasis.toFixed(2)}</td>
-                <td className={g.gain >= 0 ? 'gain-positive' : 'gain-negative'}>${g.gain.toFixed(2)}</td>
+                <td className={g.gain >= 0 ? 'gain-positive' : 'gain-negative'}>
+                  ${g.gain.toFixed(2)}
+                  {washSaleGainIds.has(g.id) && (
+                    <span
+                      title="Possible wash sale: another purchase of this instrument happened within 30 days of this loss-sale. The IRS may disallow this loss — worth mentioning to your tax preparer."
+                      style={{ marginLeft: 6, cursor: 'help' }}
+                    >
+                      ⚠️
+                    </span>
+                  )}
+                </td>
                 <td>{g.term}</td>
               </tr>
             ))}
@@ -206,6 +239,13 @@ export default function Reports(): JSX.Element {
             )}
           </tbody>
         </table>
+        {washSaleGainIds.size > 0 && (
+          <p className="hint-text">
+            ⚠️ = possible <strong>wash sale</strong>: this loss-sale has another purchase of the
+            same instrument within 30 days before or after it. US tax rules may disallow the loss —
+            point these rows out to your tax preparer.
+          </p>
+        )}
       </div>
 
       <div className="card">

@@ -67,17 +67,29 @@ your profit or loss.
 **🗑 Delete** button. Fix the numbers or remove the entry, and all profits are
 recalculated automatically.
 
+**Stock split?** Pick the *split* transaction type and enter the ratio of new
+shares per old share (a 4-for-1 split is 4; a 1-for-10 reverse split is 0.1).
+Your share count and per-share cost update automatically — your total
+investment stays the same.
+
+**Wash-sale watch:** if you buy something back within 30 days of selling it at
+a loss, the app shows a gentle warning (US tax rules may disallow that loss).
+It never blocks you — it just gives you a heads-up, and marks the affected rows
+with ⚠️ on the Reports page.
+
 ---
 
 ## 📥 Bringing in old trades
 
 The **Import Old Trades** page gives you two ways to enter history:
 
-### Way 1 — Import a CSV file
+### Way 1 — Import a CSV file (or paste rows)
 
 Most brokerages and crypto exchanges let you download your trade history as a
 "CSV" file (a simple spreadsheet). On their website look for *Export*,
-*Download history*, or *Statements & documents*.
+*Download history*, or *Statements & documents*. No file handy? Click
+**"…or paste rows from a spreadsheet"** and paste rows copied straight out of
+Excel, Google Sheets, or a statement table — include the header row.
 
 1. Click **Choose CSV file…** and pick the downloaded file.
 2. The app guesses which column is the date, which is the price, and so on.
@@ -105,7 +117,15 @@ The Dashboard (also called **My Portfolio**) is your at-a-glance summary:
 - **Unrealized gain** — profit on paper for things you *still own*. This
   appears once you set a current price (see next section).
 
-The tables below show your holdings by asset type and each position in detail.
+Below the numbers you'll find two pictures of your money:
+
+- **Where your money is** — a color bar showing how your investments split
+  across stocks, crypto, gold, and so on. Hover over any segment or legend
+  entry to see the exact amount.
+- **Realized gain by year** — columns showing your profit (or loss) from
+  completed sales, year by year. Hover over a column for the exact figure.
+
+The tables below the charts show the same numbers in detail.
 
 ---
 
@@ -260,4 +280,6 @@ All your data lives in a single file on this computer:
 | **Unrealized gain/loss** | Profit or loss "on paper" for things you still hold. |
 | **Short-term / long-term** | Held one year or less / more than one year. Long-term profits are usually taxed at a lower rate. |
 | **FIFO / LIFO** | Rules for deciding which purchase you're selling (oldest-first / newest-first). |
+| **Stock split** | A company multiplies everyone's shares (4-for-1 means every 1 share becomes 4). You own more shares, each worth less; your total is unchanged. |
+| **Wash sale** | Selling at a loss and buying the same thing back within 30 days. US tax rules may disallow the loss; the app flags these with ⚠️. |
 | **CSV** | A simple spreadsheet file most brokerages can export. |
