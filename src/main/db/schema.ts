@@ -100,4 +100,17 @@ CREATE TABLE IF NOT EXISTS audit_log (
   new_data TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS net_worth_items (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  category TEXT NOT NULL,
+  name TEXT NOT NULL,
+  value REAL NOT NULL,
+  original_value REAL,
+  acquired_date TEXT,
+  notes TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_net_worth_items_category ON net_worth_items(category);
 `

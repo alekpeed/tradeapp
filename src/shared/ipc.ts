@@ -4,7 +4,9 @@ import type {
   CsvImportRow,
   Instrument,
   InstrumentType,
+  NewNetWorthItemInput,
   NewTransactionInput,
+  NetWorthItem,
   OpenLotSummary,
   Position,
   RealizedGainLoss,
@@ -57,6 +59,12 @@ export interface TradeAppApi {
     list(filters?: { accountId?: number; instrumentId?: number; year?: number }): Promise<
       RealizedGainLoss[]
     >
+  }
+  netWorthItems: {
+    list(): Promise<NetWorthItem[]>
+    create(input: NewNetWorthItemInput): Promise<NetWorthItem>
+    update(id: number, input: NewNetWorthItemInput): Promise<NetWorthItem>
+    delete(id: number): Promise<void>
   }
   csv: {
     openAndParse(): Promise<{ filePath: string; headers: string[]; rows: CsvImportRow[] } | null>

@@ -27,6 +27,12 @@ const api: TradeAppApi = {
   realizedGains: {
     list: (filters) => ipcRenderer.invoke('realizedGains:list', filters)
   },
+  netWorthItems: {
+    list: () => ipcRenderer.invoke('netWorthItems:list'),
+    create: (input) => ipcRenderer.invoke('netWorthItems:create', input),
+    update: (id, input) => ipcRenderer.invoke('netWorthItems:update', id, input),
+    delete: (id) => ipcRenderer.invoke('netWorthItems:delete', id)
+  },
   csv: {
     openAndParse: () => ipcRenderer.invoke('csv:openAndParse'),
     commitImport: (input) => ipcRenderer.invoke('csv:commitImport', input)
