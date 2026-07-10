@@ -83,7 +83,10 @@ function Shell(): JSX.Element {
       )}
       <main className="content">
         <Routes>
-          <Route path="/" element={layout === 'simple' ? <Home /> : <Dashboard />} />
+          <Route
+            path="/"
+            element={layout === 'simple' ? <Home /> : layout === 'bubbles' ? <Bubbles /> : <Dashboard />}
+          />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/bubbles" element={<Bubbles />} />
           <Route path="/transactions" element={<Transactions />} />

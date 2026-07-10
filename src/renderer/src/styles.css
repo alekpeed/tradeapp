@@ -30,7 +30,7 @@ body {
 /* ---------- App shells / layouts ---------- */
 
 .app-shell { display: flex; height: 100vh; }
-.app-shell.layout-sidebar, .app-shell.layout-compact { flex-direction: row; }
+.app-shell.layout-sidebar, .app-shell.layout-compact, .app-shell.layout-bubbles { flex-direction: row; }
 .app-shell.layout-topbar, .app-shell.layout-simple { flex-direction: column; }
 
 /* Big & Simple layout scales everything up */
