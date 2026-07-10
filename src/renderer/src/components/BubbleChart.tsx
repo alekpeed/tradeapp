@@ -27,9 +27,17 @@ interface BubbleChartProps {
   root: BubbleNode
   onDrillPosition: (accountId: number, instrumentId: number) => void
   onAddClick: () => void
+  onEditNetWorthItem: (itemId: number) => void
+  realizedGain?: { ytd: number; allTime: number }
 }
 
-export default function BubbleChart({ root, onDrillPosition, onAddClick }: BubbleChartProps): JSX.Element {
+export default function BubbleChart({
+  root,
+  onDrillPosition,
+  onAddClick,
+  onEditNetWorthItem,
+  realizedGain
+}: BubbleChartProps): JSX.Element {
   const [path, setPath] = useState<string[]>(['root'])
   const [timeT, setTimeT] = useState(1)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -78,6 +86,10 @@ export default function BubbleChart({ root, onDrillPosition, onAddClick }: Bubbl
     if (n.meta?.kind === 'position') {
       onDrillPosition(n.meta.accountId, n.meta.instrumentId)
       setPath((p) => [...p, n.id])
+      return
+    }
+    if (n.meta?.kind === 'netWorthItem') {
+      onEditNetWorthItem(n.meta.itemId)
     }
   }
 
@@ -115,6 +127,20 @@ export default function BubbleChart({ root, onDrillPosition, onAddClick }: Bubbl
           )}
           {timeT < 0.999 && <span style={{ color: '#c9a95e' }}> · as of {dateLabelForT(timeT)}</span>}
         </div>
+        {realizedGain && (current.id === 'root' || current.id === 'investments') && timeT >= 0.999 && (
+          <div className="bv-l2">
+            realized this year{' '}
+            <span className={realizedGain.ytd >= 0 ? 'bv-up' : 'bv-down'}>
+              {realizedGain.ytd >= 0 ? '+' : ''}
+              {fmt(realizedGain.ytd)}
+            </span>
+            {' · all-time '}
+            <span className={realizedGain.allTime >= 0 ? 'bv-up' : 'bv-down'}>
+              {realizedGain.allTime >= 0 ? '+' : ''}
+              {fmt(realizedGain.allTime)}
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="bv-stage" onClick={stepOut}>

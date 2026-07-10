@@ -4,7 +4,8 @@ import type {
   NetWorthCategory,
   NetWorthItem,
   OpenLotSummary,
-  Position
+  Position,
+  RealizedGainLoss
 } from '@shared/types'
 import { useAppData } from '../context/AppData'
 import BubbleChart from '../components/BubbleChart'
@@ -34,15 +35,27 @@ export default function Bubbles(): JSX.Element {
   const { accounts, instruments, refreshInstruments } = useAppData()
   const [positions, setPositions] = useState<Position[]>([])
   const [netWorthItems, setNetWorthItems] = useState<NetWorthItem[]>([])
+  const [realizedGains, setRealizedGains] = useState<RealizedGainLoss[]>([])
   const [lotsByKey, setLotsByKey] = useState<Record<string, OpenLotSummary[]>>({})
   const [modalOpen, setModalOpen] = useState(false)
   const [mode, setMode] = useState<'trade' | 'networth'>('trade')
+  const [editingItemId, setEditingItemId] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const reload = useCallback(async () => {
     setPositions(await window.tradeapp.positions.list())
     setNetWorthItems(await window.tradeapp.netWorthItems.list())
+    setRealizedGains(await window.tradeapp.realizedGains.list())
   }, [])
+
+  const realizedGainSummary = useMemo(() => {
+    const currentYear = new Date().getFullYear()
+    const allTime = realizedGains.reduce((sum, g) => sum + g.gain, 0)
+    const ytd = realizedGains
+      .filter((g) => new Date(g.soldDate).getFullYear() === currentYear)
+      .reduce((sum, g) => sum + g.gain, 0)
+    return { ytd, allTime }
+  }, [realizedGains])
 
   useEffect(() => {
     reload()
@@ -89,11 +102,27 @@ export default function Bubbles(): JSX.Element {
 
   function openModal(): void {
     setError(null)
+    setEditingItemId(null)
+    setMode('trade')
     setModalOpen(true)
   }
   function closeModal(): void {
     setModalOpen(false)
     setError(null)
+    setEditingItemId(null)
+  }
+  function openEditNetWorthItem(itemId: number): void {
+    const item = netWorthItems.find((i) => i.id === itemId)
+    if (!item) return
+    setError(null)
+    setEditingItemId(itemId)
+    setMode('networth')
+    setNCategory(item.category)
+    setNName(item.name)
+    setNValue(String(Math.abs(item.value)))
+    setNOriginalValue(item.originalValue !== null ? String(Math.abs(item.originalValue)) : '')
+    setNAcquiredDate(item.acquiredDate ?? '')
+    setModalOpen(true)
   }
 
   async function submitTrade(): Promise<void> {
@@ -175,18 +204,32 @@ export default function Bubbles(): JSX.Element {
     const original = nOriginalValue.trim() ? parseFloat(nOriginalValue) : undefined
     const isDebt = nCategory === 'debt'
 
-    await window.tradeapp.netWorthItems.create({
+    const payload = {
       category: nCategory,
       name: nName.trim(),
       value: isDebt ? -Math.abs(value) : value,
       originalValue: original !== undefined ? (isDebt ? -Math.abs(original) : original) : undefined,
       acquiredDate: nAcquiredDate || undefined
-    })
+    }
+
+    if (editingItemId !== null) {
+      await window.tradeapp.netWorthItems.update(editingItemId, payload)
+    } else {
+      await window.tradeapp.netWorthItems.create(payload)
+    }
 
     setNName('')
     setNValue('')
     setNOriginalValue('')
     setNAcquiredDate('')
+    closeModal()
+    await reload()
+  }
+
+  async function deleteNetWorthItem(): Promise<void> {
+    if (editingItemId === null) return
+    if (!window.confirm(`Delete "${nName}"? This can't be undone.`)) return
+    await window.tradeapp.netWorthItems.delete(editingItemId)
     closeModal()
     await reload()
   }
@@ -199,31 +242,45 @@ export default function Bubbles(): JSX.Element {
         Drag the time dial to replay your history.
       </p>
 
-      <BubbleChart root={root} onDrillPosition={handleDrillPosition} onAddClick={openModal} />
+      <BubbleChart
+        root={root}
+        onDrillPosition={handleDrillPosition}
+        onAddClick={openModal}
+        onEditNetWorthItem={openEditNetWorthItem}
+        realizedGain={realizedGainSummary}
+      />
 
       {modalOpen && (
         <div className="bv-modalOverlay bv-open" onClick={(e) => e.target === e.currentTarget && closeModal()}>
           <div className="bv-modalCard">
-            <h3>{mode === 'trade' ? 'Record a trade' : 'Add a net worth item'}</h3>
+            <h3>
+              {editingItemId !== null
+                ? 'Edit net worth item'
+                : mode === 'trade'
+                  ? 'Record a trade'
+                  : 'Add a net worth item'}
+            </h3>
 
-            <div className="bv-formRow">
-              <div className="bv-segmented">
-                <button
-                  type="button"
-                  className={'bv-segBtn' + (mode === 'trade' ? ' bv-active' : '')}
-                  onClick={() => setMode('trade')}
-                >
-                  Investment trade
-                </button>
-                <button
-                  type="button"
-                  className={'bv-segBtn' + (mode === 'networth' ? ' bv-active' : '')}
-                  onClick={() => setMode('networth')}
-                >
-                  Net worth item
-                </button>
+            {editingItemId === null && (
+              <div className="bv-formRow">
+                <div className="bv-segmented">
+                  <button
+                    type="button"
+                    className={'bv-segBtn' + (mode === 'trade' ? ' bv-active' : '')}
+                    onClick={() => setMode('trade')}
+                  >
+                    Investment trade
+                  </button>
+                  <button
+                    type="button"
+                    className={'bv-segBtn' + (mode === 'networth' ? ' bv-active' : '')}
+                    onClick={() => setMode('networth')}
+                  >
+                    Net worth item
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
             {mode === 'trade' ? (
               <>
@@ -361,11 +418,16 @@ export default function Bubbles(): JSX.Element {
                 </div>
                 {error && <div className="bv-formErr">{error}</div>}
                 <div className="bv-formActions">
+                  {editingItemId !== null && (
+                    <button type="button" className="bv-btn bv-ghost" onClick={deleteNetWorthItem}>
+                      Delete
+                    </button>
+                  )}
                   <button type="button" className="bv-btn bv-ghost" onClick={closeModal}>
                     Cancel
                   </button>
                   <button type="button" className="bv-btn bv-gold" onClick={submitNetWorthItem}>
-                    Add item
+                    {editingItemId !== null ? 'Save changes' : 'Add item'}
                   </button>
                 </div>
               </>

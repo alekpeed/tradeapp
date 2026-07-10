@@ -55,8 +55,14 @@ export function dateToT(iso: string): number {
 export function leafValueAt(n: BubbleNode, t: number): number {
   const cur = n.value ?? 0
   if (!n.acquiredDate || n.costBasis === undefined) return cur
+  // t=1 ("today") is the anchor the whole curve must pass through exactly,
+  // regardless of acquisition date — guard it first so a same-day purchase
+  // (t0 essentially equal to 1) can't collapse the interpolation fraction
+  // to a 0/0-ish edge case and show cost basis instead of today's value.
+  if (t >= 1) return cur
   const t0 = dateToT(n.acquiredDate)
-  const k = Math.max(0, Math.min(1, (t - t0) / Math.max(0.001, 1 - t0)))
+  if (t <= t0) return n.costBasis
+  const k = (t - t0) / (1 - t0)
   return n.costBasis + (cur - n.costBasis) * k
 }
 
