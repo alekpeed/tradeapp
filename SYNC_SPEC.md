@@ -163,13 +163,23 @@ if/when Apple fee is paid.
 
 ---
 
-## 9. Open decisions
+## 9. Decisions
 
-1. **iPhone path:** PWA now + native later (recommended), vs. hold for native.
-2. **Data-key escrow location:** developer's password manager (recommended).
-3. **Branch of record:** `claude/trade-tracking-app-design-xfby7l` (per handoff
-   + user instruction). Session was auto-configured with
-   `claude/tradeapp-continuation-0g7mvr`; both were identical until this commit.
+1. **Surfaces — DECIDED.** Three targets sharing one core:
+   - **Windows desktop** (Electron) — exists.
+   - **iPhone PWA** — build now.
+   - **iPhone native** (Capacitor) — the committed end goal, pending the end
+     user's approval of the $99/yr Apple fee. **Build the PWA Capacitor-ready**
+     so native is a packaging step, not a rewrite.
+   Implication: a **data-layer abstraction** is required so the same React UI
+   runs on desktop (IPC + local SQLite), web/PWA (Supabase), and native
+   (Capacitor + Supabase). No surface-specific forks of the UI.
+2. **Data-key escrow — DECIDED.** The end user's developer (repo owner) will
+   generate and hold the encryption key. Claude never needs to see it; the
+   encryption design must accept an externally-supplied key.
+3. **Branch of record:** `claude/trade-tracking-app-design-xfby7l`. Merged into
+   `main` on 2026-07-15; ongoing work continues on the feature branch and is
+   merged to `main` by default ("merge, always").
 
 ---
 
@@ -203,3 +213,9 @@ GitHub's runners instead.
   Added `releaseType: release` to `electron-builder.yml` and a triggerable
   `release.yml` on `main`. v0.3.0 release now carries the installer + blockmap +
   `latest.yml` (published, non-draft). Future releases are one dispatch away.
+- **2026-07-15 (later)** — Branch merged to `main` (PR #1). Surfaces decided:
+  Windows desktop + iPhone PWA (now) + iPhone native (committed goal, pending
+  end-user approval of Apple fee) — all sharing one React core via a data-layer
+  abstraction; PWA built Capacitor-ready. Key escrow owned by the repo owner
+  (Claude never sees the key). Next: Phase 1 — Supabase backend + the data-layer
+  seam that unblocks both desktop sync and the PWA.
