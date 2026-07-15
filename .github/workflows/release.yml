@@ -1,0 +1,82 @@
+name: Release
+
+# Cut a release entirely in CI — no local tag push, no GitHub UI needed.
+# Triggered manually (or via API) with a version + the ref to build from.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to release, e.g. 0.3.0 (must match package.json on the source ref)"
+        required: true
+      source_ref:
+        description: "Branch/ref to build the release from"
+        required: true
+        default: main
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - name: Check out the source ref
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.source_ref }}
+          fetch-depth: 0
+
+      - name: Verify version matches package.json
+        shell: bash
+        run: |
+          PKG=$(node -p "require('./package.json').version")
+          if [ "$PKG" != "${{ inputs.version }}" ]; then
+            echo "::error::package.json version ($PKG) does not match requested version (${{ inputs.version }})"
+            exit 1
+          fi
+
+      # Make the run idempotent: clear any prior release/tag for this version so
+      # electron-builder can publish cleanly (handles a half-cut release).
+      - name: Remove any existing release/tag for this version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          gh release delete "v${{ inputs.version }}" --yes --cleanup-tag || true
+          git push origin ":refs/tags/v${{ inputs.version }}" || true
+
+      - name: Create tag at the source ref
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag "v${{ inputs.version }}"
+          git push origin "v${{ inputs.version }}"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build app
+        run: npm run build
+
+      # electron-builder publishes a real GitHub Release (releaseType is set to
+      # 'release' in electron-builder.yml) with the installer + latest.yml, which
+      # the in-app auto-updater reads.
+      - name: Build and publish Windows installer
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx electron-builder --win --publish always
+
+      - name: Upload installer artifact (backup copy)
+        uses: actions/upload-artifact@v4
+        with:
+          name: TradeApp-windows-installer-v${{ inputs.version }}
+          path: dist/*.exe
+          if-no-files-found: error
+          retention-days: 90
