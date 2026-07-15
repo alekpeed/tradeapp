@@ -31,6 +31,13 @@ The whole point of this build is that finance data syncs and is protected
 
 ## 1. Architecture
 
+> **BACKEND: Firebase** (pivoted from Supabase on 2026-07-15). In the diagram and
+> older sections below, read "Supabase / Postgres" as **Firestore**, "Row-Level
+> Security" as **Firebase Security Rules**, and the auth "Edge Function" as
+> **Firebase Auth** (native persistent sessions; anonymous or custom-token
+> identity). Firestore's built-in offline persistence also absorbs much of the
+> custom sync engine. Detailed Firebase design supersedes those specifics.
+
 ```
    WINDOWS PC                     SUPABASE (cloud)                iPHONE
  ┌─────────────────┐          ┌────────────────────┐        ┌───────────────┐
@@ -217,5 +224,13 @@ GitHub's runners instead.
   Windows desktop + iPhone PWA (now) + iPhone native (committed goal, pending
   end-user approval of Apple fee) — all sharing one React core via a data-layer
   abstraction; PWA built Capacitor-ready. Key escrow owned by the repo owner
-  (Claude never sees the key). Next: Phase 1 — Supabase backend + the data-layer
-  seam that unblocks both desktop sync and the PWA.
+  (Claude never sees the key).
+- **2026-07-15 (later) — BACKEND PIVOT: Supabase → Firebase.** Supabase free plan
+  capped the org at 2 active projects (both taken by other apps), and financial
+  data warranted isolation. Switched to Firebase: **Firestore** (documents) as
+  the datastore, **Firebase Auth** for the invisible persistent login (no Edge
+  Function needed), **Security Rules** for per-user isolation, and Firestore's
+  **offline persistence** for local-first sync. Free tier, no project cap. Nothing
+  was created or paused on Supabase. Client-side encryption (owner-held key) is
+  unchanged. Next: Phase 1 — Firebase project + Firestore data model + the
+  data-layer seam that unblocks desktop sync and the PWA.
