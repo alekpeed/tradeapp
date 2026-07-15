@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { DEFAULT_THEME_ID, getTheme } from '../themes'
 
-export type LayoutId = 'sidebar' | 'compact' | 'topbar' | 'simple'
+export type LayoutId = 'sidebar' | 'compact' | 'topbar' | 'simple' | 'bubbles'
 
 export const LAYOUTS: { id: LayoutId; name: string; description: string }[] = [
   {
@@ -23,6 +23,12 @@ export const LAYOUTS: { id: LayoutId; name: string; description: string }[] = [
     id: 'simple',
     name: 'Big & Simple',
     description: 'Large text and a Home screen with big buttons for each task. The easiest to use.'
+  },
+  {
+    id: 'bubbles',
+    name: 'Bubble Universe',
+    description:
+      'Your net worth is the home screen, drawn as drilldown bubbles. Pairs with the Bubble Glass theme below.'
   }
 ]
 

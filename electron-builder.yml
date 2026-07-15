@@ -24,3 +24,8 @@ publish:
   provider: github
   owner: alekpeed
   repo: tradeapp
+  # Publish directly to a real (non-draft) release. electron-builder defaults to
+  # 'draft', which refuses to attach assets when a published release already
+  # exists for the tag (e.g. one created via the GitHub web UI) — the assets get
+  # silently skipped. 'release' makes CI populate the published release directly.
+  releaseType: release

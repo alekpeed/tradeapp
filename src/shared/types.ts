@@ -159,6 +159,28 @@ export interface CsvImportRow {
   [key: string]: string
 }
 
+export type NetWorthCategory = 'retirement' | 'cash' | 'real_estate' | 'collectible' | 'debt'
+
+export interface NetWorthItem {
+  id: number
+  category: NetWorthCategory
+  name: string
+  value: number
+  originalValue: number | null
+  acquiredDate: string | null
+  notes: string | null
+  createdAt: string
+}
+
+export interface NewNetWorthItemInput {
+  category: NetWorthCategory
+  name: string
+  value: number
+  originalValue?: number | null
+  acquiredDate?: string | null
+  notes?: string
+}
+
 export interface CsvColumnMapping {
   date: string
   type: string

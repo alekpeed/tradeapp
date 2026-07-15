@@ -5,6 +5,7 @@ import { registerTransactionHandlers } from './transactions'
 import { registerCsvHandlers } from './csvImport'
 import { registerPdfHandlers } from './pdfExport'
 import { registerLotHandlers } from './lots'
+import { registerNetWorthItemHandlers } from './netWorthItems'
 
 export function registerAllIpcHandlers(db: Database.Database): void {
   registerInstrumentHandlers(db)
@@ -13,4 +14,5 @@ export function registerAllIpcHandlers(db: Database.Database): void {
   registerCsvHandlers(db)
   registerPdfHandlers()
   registerLotHandlers(db)
+  registerNetWorthItemHandlers(db)
 }

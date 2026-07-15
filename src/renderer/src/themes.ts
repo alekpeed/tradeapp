@@ -111,6 +111,16 @@ export const THEMES: Theme[] = [
   theme('crimson', 'Crimson Night', true, {
     '--bg': '#1a1214', '--surface': '#241a1c', '--border': '#41302f',
     '--primary': '#ef5350', '--primary-hover': '#d43c39', '--nav-bg': '#120c0d', '--nav-active-bg': '#ef5350'
+  }),
+  // Matches the Bubbles view's dark-glass-and-gold palette, so the rest of
+  // the app (tables, forms, nav) reads as the same world when that layout
+  // is selected — not just the net-worth page.
+  theme('bubbles-glass', 'Bubble Glass', true, {
+    '--bg': '#0a0b12', '--surface': '#14161f', '--border': '#2a2d3d',
+    '--text': '#e6e8f0', '--muted': '#8b91ac',
+    '--primary': '#c9a24b', '--primary-hover': '#b8903e', '--primary-contrast': '#241a06',
+    '--nav-bg': '#0b0d14', '--nav-text': '#a6acc4', '--nav-active-bg': '#c9a24b', '--nav-active-text': '#241a06',
+    '--positive': '#7fd6a0', '--negative': '#e0886e'
   })
 ]
 
