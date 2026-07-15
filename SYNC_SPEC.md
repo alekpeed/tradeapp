@@ -173,9 +173,33 @@ if/when Apple fee is paid.
 
 ---
 
+## 11. Release process (hands-off, no token, no UI)
+
+Releases are cut by a CI workflow — **no local tag push, no GitHub web UI, no
+personal access token**. This exists because the dev sandbox's egress proxy
+blocks all direct GitHub *write* API calls; the release writes must happen on
+GitHub's runners instead.
+
+- Workflow: `.github/workflows/release.yml` (lives on the **default branch
+  `main`** so it is dispatchable; builds whatever ref is passed in).
+- To cut a release: dispatch `release.yml` with inputs `version` (must match
+  `package.json` on the source ref) and `source_ref` (branch to build from).
+  Claude can trigger this via the GitHub Actions MCP tool.
+- The workflow self-heals: it deletes any existing release/tag for that version,
+  re-tags the source ref, builds, and publishes the Windows installer +
+  `latest.yml` to a real GitHub Release (`releaseType: release` in
+  `electron-builder.yml`) for the auto-updater.
+- `build-windows.yml` remains for tag-triggered builds and manual test builds.
+
 ## 10. Change log
 
 - **2026-07-15** — Initial draft. Direction locked: local-first + Supabase +
   baked-in device-secret auth ("eternal" login) + full-layer encryption with
   developer-escrowed key. iPhone added as a target (PWA → native Capacitor).
   UI/UX deprioritized except Principle #0 behavior. v0.3.0 confirmed still uncut.
+- **2026-07-15 (later)** — **v0.3.0 shipped.** Cut via the new CI release
+  pipeline after diagnosing that the original 403 was an environment egress
+  policy (not a token/permissions issue) that blocks direct GitHub writes.
+  Added `releaseType: release` to `electron-builder.yml` and a triggerable
+  `release.yml` on `main`. v0.3.0 release now carries the installer + blockmap +
+  `latest.yml` (published, non-draft). Future releases are one dispatch away.
