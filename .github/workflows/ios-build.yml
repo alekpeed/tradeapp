@@ -1,0 +1,36 @@
+name: iOS App build
+
+# Generates the Xcode project with XcodeGen and builds the SwiftUI app for the
+# simulator (no code signing needed). This is the macOS verification loop for the
+# native iOS app — I can't build it on Linux, so CI is the only check.
+on:
+  push:
+    paths:
+      - 'ios/App/**'
+      - 'ios/Engine/**'
+      - '.github/workflows/ios-build.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        working-directory: ios/App
+        run: xcodegen generate
+
+      - name: Build (iOS Simulator, unsigned)
+        working-directory: ios/App
+        run: |
+          xcodebuild build \
+            -project TradeApp.xcodeproj \
+            -scheme TradeApp \
+            -sdk iphonesimulator \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO

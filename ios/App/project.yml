@@ -1,0 +1,35 @@
+# XcodeGen spec — the .xcodeproj is generated in CI (not committed), so there's no
+# fragile pbxproj to hand-maintain. `xcodegen generate` + `xcodebuild` in CI.
+name: TradeApp
+options:
+  bundleIdPrefix: com.tradeapp
+  deploymentTarget:
+    iOS: "16.0"
+  createIntermediateGroups: true
+packages:
+  Engine:
+    path: ../Engine
+targets:
+  TradeApp:
+    type: application
+    platform: iOS
+    sources:
+      - Sources
+    dependencies:
+      - package: Engine
+        product: Engine
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.tradeapp.ios
+        GENERATE_INFOPLIST_FILE: YES
+        MARKETING_VERSION: "0.3.0"
+        CURRENT_PROJECT_VERSION: "1"
+        TARGETED_DEVICE_FAMILY: "1"
+        SWIFT_VERSION: "5.9"
+schemes:
+  TradeApp:
+    build:
+      targets:
+        TradeApp: all
+    run:
+      config: Debug
